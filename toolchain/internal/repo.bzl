@@ -225,6 +225,10 @@ _compiler_configuration_attrs = {
         mandatory = False,
         doc = ("Override the toolchain's `target_settings` attribute."),
     ),
+    "target_compatible_with": attr.string_list_dict(
+        mandatory = False,
+        doc = ("Override the toolchain's `target_compatible_with` attribute."),
+    )
 }
 
 llvm_config_attrs = dict(common_attrs)

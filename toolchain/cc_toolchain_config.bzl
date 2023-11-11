@@ -87,6 +87,15 @@ def cc_toolchain_config(
             "clang",
             "glibc_unknown",
         ),
+        "linux-armv7": (
+            "clang-armv7-linux",
+            "arm-linux-gnueabihf",
+            "armv7a",
+            "glibc_unknown",
+            "clang",
+            "clang",
+            "glibc_unknown",
+        ),
         "linux-x86_64": (
             "clang-x86_64-linux",
             "x86_64-unknown-linux-gnu",
@@ -345,6 +354,9 @@ def cc_toolchain_config(
     if compiler_configuration["unfiltered_compile_flags"] != None:
         unfiltered_compile_flags = _fmt_flags(compiler_configuration["unfiltered_compile_flags"], toolchain_path_prefix)
 
+    rendered_cxx_flags = [f.replace("%sysroot%", sysroot_path) for f in cxx_flags]
+    rendered_link_flags = [f.replace("%sysroot%", sysroot_path) for f in link_flags]
+
     # Source: https://cs.opensource.google/bazel/bazel/+/master:tools/cpp/unix_cc_toolchain_config.bzl
     unix_cc_toolchain_config(
         name = name,
@@ -361,8 +373,8 @@ def cc_toolchain_config(
         compile_flags = compile_flags,
         dbg_compile_flags = dbg_compile_flags,
         opt_compile_flags = opt_compile_flags,
-        cxx_flags = cxx_flags,
-        link_flags = link_flags,
+        cxx_flags = rendered_cxx_flags,
+        link_flags = rendered_link_flags,
         link_libs = link_libs,
         opt_link_flags = opt_link_flags,
         unfiltered_compile_flags = unfiltered_compile_flags,

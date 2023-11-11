@@ -163,12 +163,16 @@ def llvm_register_toolchains():
         ]
         for pair in _host_tools.get_tool_info(rctx, tool_path, key).items()
     ])
+
+    target_compatible_with = rctx.attr.target_compatible_with
+
     cc_toolchains_str, toolchain_labels_str = _cc_toolchains_str(
         rctx,
         workspace_name,
         toolchain_info,
         use_absolute_paths_llvm,
         host_tools_info,
+        target_compatible_with,
     )
 
     convenience_targets_str = _convenience_targets_str(
@@ -219,7 +223,9 @@ def _cc_toolchains_str(
         workspace_name,
         toolchain_info,
         use_absolute_paths_llvm,
-        host_tools_info):
+        host_tools_info,
+        target_compatible_with,
+    ):
     # Since all the toolchains rely on downloading the right LLVM toolchain for
     # the host architecture, we don't need to explicitly specify
     # `exec_compatible_with` attribute. If the host and execution platform are
@@ -242,6 +248,7 @@ def _cc_toolchains_str(
             suffix,
             target_os,
             target_arch,
+            target_compatible_with,
             toolchain_info,
             use_absolute_paths_llvm,
             host_tools_info,
@@ -266,6 +273,7 @@ def _cc_toolchain_str(
         suffix,
         target_os,
         target_arch,
+        target_compatible_with,
         toolchain_info,
         use_absolute_paths_llvm,
         host_tools_info):
@@ -337,10 +345,7 @@ toolchain(
         "@platforms//cpu:{host_arch}",
         "@platforms//os:{host_os_bzl}",
     ],
-    target_compatible_with = [
-        "@platforms//cpu:{target_arch}",
-        "@platforms//os:{target_os_bzl}",
-    ],
+    target_compatible_with = {target_compatible_with},
     target_settings = {target_settings},
     toolchain = ":cc-clang-{suffix}",
     toolchain_type = "@bazel_tools//tools/cpp:toolchain_type",
@@ -449,6 +454,7 @@ cc_toolchain(
         target_os_bzl = target_os_bzl,
         host_os_bzl = host_os_bzl,
         llvm_dist_label_prefix = toolchain_info.llvm_dist_label_prefix,
+        target_compatible_with = _dict_value(target_compatible_with, target_pair, "[]"),
         llvm_dist_path_prefix = toolchain_info.llvm_dist_path_prefix,
         tools_path_prefix = toolchain_info.tools_path_prefix,
         wrapper_bin_prefix = toolchain_info.wrapper_bin_prefix,
