@@ -172,11 +172,13 @@ def llvm_config_impl(rctx):
         extra_target_compatible_with = rctx.attr.extra_target_compatible_with,
     )
     exec_dl_ext = "dylib" if os == "darwin" else "so"
+    target_compatible_with = rctx.attr.target_compatible_with
     cc_toolchains_str, toolchain_labels_str = _cc_toolchains_str(
         rctx,
         workspace_name,
         toolchain_info,
         use_absolute_paths_llvm,
+        target_compatible_with,
     )
 
     convenience_targets_str = _convenience_targets_str(
@@ -226,7 +228,9 @@ def _cc_toolchains_str(
         rctx,
         workspace_name,
         toolchain_info,
-        use_absolute_paths_llvm):
+        use_absolute_paths_llvm,
+        target_compatible_with,
+    ):
     # Since all the toolchains rely on downloading the right LLVM toolchain for
     # the host architecture, we don't need to explicitly specify
     # `exec_compatible_with` attribute. If the host and execution platform are
@@ -249,6 +253,7 @@ def _cc_toolchains_str(
             suffix,
             target_os,
             target_arch,
+            target_compatible_with,
             toolchain_info,
             use_absolute_paths_llvm,
         )
@@ -272,6 +277,7 @@ def _cc_toolchain_str(
         suffix,
         target_os,
         target_arch,
+        target_compatible_with,
         toolchain_info,
         use_absolute_paths_llvm):
     exec_os = toolchain_info.os
@@ -315,6 +321,7 @@ def _cc_toolchain_str(
         "darwin-aarch64": "aarch64-apple-macosx",
         "linux-aarch64": "aarch64-unknown-linux-gnu",
         "linux-x86_64": "x86_64-unknown-linux-gnu",
+        "linux-armv7": "armv7-unknown-linux-gnueabi",
     }[target_pair]
     cxx_builtin_include_directories = [
         toolchain_path_prefix + "include/c++/v1",
@@ -385,10 +392,7 @@ toolchain(
         "@platforms//cpu:{exec_arch}",
         "@platforms//os:{exec_os_bzl}",
     ] + {extra_exec_compatible_with_specific} + {extra_exec_compatible_with_all_targets},
-    target_compatible_with = [
-        "@platforms//cpu:{target_arch}",
-        "@platforms//os:{target_os_bzl}",
-    ] + {extra_target_compatible_with_specific} + {extra_target_compatible_with_all_targets},
+    target_compatible_with = {target_compatible_with},
     target_settings = {target_settings},
     toolchain = ":cc-clang-{suffix}",
     toolchain_type = "@bazel_tools//tools/cpp:toolchain_type",
@@ -518,6 +522,7 @@ cc_toolchain(
         target_system_name = target_system_name,
         exec_os_bzl = exec_os_bzl,
         llvm_dist_label_prefix = toolchain_info.llvm_dist_label_prefix,
+        target_compatible_with = _dict_value(target_compatible_with, target_pair, "[]"),
         llvm_dist_path_prefix = toolchain_info.llvm_dist_path_prefix,
         tools_path_prefix = toolchain_info.tools_path_prefix,
         wrapper_bin_prefix = toolchain_info.wrapper_bin_prefix,

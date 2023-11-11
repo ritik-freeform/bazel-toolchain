@@ -247,6 +247,10 @@ _compiler_configuration_attrs = {
                "Mostly useful for providing files containing lists of flags, e.g. " +
                "sanitizer ignorelists."),
     ),
+    "target_compatible_with": attr.string_list_dict(
+        mandatory = False,
+        doc = ("Override the toolchain's `target_compatible_with` attribute."),
+    )
 }
 
 llvm_config_attrs = dict(common_attrs)
